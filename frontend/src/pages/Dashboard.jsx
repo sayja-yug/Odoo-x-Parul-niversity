@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Sparkles, Wallet, MapPinned, Users } from 'lucide-react'
@@ -5,9 +6,20 @@ import StatCard from '../components/StatCard.jsx'
 import TripCard from '../components/TripCard.jsx'
 import BudgetChart from '../components/BudgetChart.jsx'
 import TripMap from '../components/TripMap.jsx'
-import { budgetSeries, recentTrips } from '../data/mock.js'
+import { api } from '../api/client.js'
+import { budgetSeries } from '../data/mock.js'
 
 export default function Dashboard() {
+  const [trips, setTrips] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.trips.list()
+      .then(setTrips)
+      .catch(console.error)
+      .finally(() => setLoading(false))
+  }, [])
+
   return (
     <div className="space-y-6 lg:space-y-8">
       <section className="glass overflow-hidden rounded-[2rem] border border-white/10 p-6 shadow-glow sm:p-8">
@@ -38,16 +50,16 @@ export default function Dashboard() {
             <div className="mt-4 space-y-4">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
                 <p className="text-sm text-slate-400">Next departure</p>
-                <p className="mt-1 text-2xl font-semibold text-white">Barcelona 07:30</p>
+                <p className="mt-1 text-2xl font-semibold text-white">None scheduled</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-white/5 p-4">
                   <p className="text-sm text-slate-400">Cities planned</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">12</p>
+                  <p className="mt-2 text-2xl font-semibold text-white">{trips.length}</p>
                 </div>
                 <div className="rounded-2xl bg-white/5 p-4">
-                  <p className="text-sm text-slate-400">Budget left</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">$1.4k</p>
+                  <p className="text-sm text-slate-400">Status</p>
+                  <p className="mt-2 text-2xl font-semibold text-white">Active</p>
                 </div>
               </div>
             </div>
@@ -56,10 +68,10 @@ export default function Dashboard() {
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard title="Trips created" value="28" detail="7 public, 21 private" accent="from-aqua-400 to-cyan-600" />
-        <StatCard title="Shared plans" value="11" detail="3 copied this week" accent="from-sand-300 to-orange-500" />
-        <StatCard title="Active travelers" value="64" detail="Engagement up 18%" accent="from-emerald-300 to-teal-500" />
-        <StatCard title="Average spend" value="$2,148" detail="Per itinerary" accent="from-sky-300 to-blue-600" />
+        <StatCard title="Trips created" value={trips.length.toString()} detail="Real-time data" accent="from-aqua-400 to-cyan-600" />
+        <StatCard title="Shared plans" value="0" detail="No shared trips" accent="from-sand-300 to-orange-500" />
+        <StatCard title="Status" value="Online" detail="System ready" accent="from-emerald-300 to-teal-500" />
+        <StatCard title="Budget tracking" value="Enabled" detail="Dynamic updates" accent="from-sky-300 to-blue-600" />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.2fr,0.8fr]">
@@ -69,12 +81,20 @@ export default function Dashboard() {
               <p className="text-sm uppercase tracking-[0.2em] text-aqua-200">Recent trips</p>
               <h2 className="mt-1 text-2xl font-semibold text-white">Ready to continue planning</h2>
             </div>
-            <a href="/trips" className="text-sm font-medium text-aqua-200 hover:text-white">View all trips</a>
+            <Link to="/trips" className="text-sm font-medium text-aqua-200 hover:text-white">View all trips</Link>
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {recentTrips.map((trip) => (
-              <TripCard key={trip.id} trip={trip} />
-            ))}
+            {loading ? (
+              <div className="col-span-full py-12 text-center text-slate-400">Loading trips...</div>
+            ) : trips.length > 0 ? (
+              trips.slice(0, 3).map((trip) => (
+                <TripCard key={trip.id} trip={trip} />
+              ))
+            ) : (
+              <div className="col-span-full rounded-2xl border border-dashed border-white/10 bg-white/5 py-12 text-center">
+                <p className="text-slate-400">No trips found. Create your first itinerary!</p>
+              </div>
+            )}
           </div>
         </div>
         <div className="space-y-6">
@@ -89,12 +109,12 @@ export default function Dashboard() {
             </div>
             <div className="mt-5 space-y-3">
               <div>
-                <div className="mb-1 flex items-center justify-between text-sm text-slate-300"><span>Budget usage</span><span>72%</span></div>
-                <div className="h-2 rounded-full bg-white/10"><div className="h-2 w-[72%] rounded-full bg-gradient-to-r from-aqua-400 to-sand-300" /></div>
+                <div className="mb-1 flex items-center justify-between text-sm text-slate-300"><span>Budget usage</span><span>0%</span></div>
+                <div className="h-2 rounded-full bg-white/10"><div className="h-2 w-[0%] rounded-full bg-gradient-to-r from-aqua-400 to-sand-300" /></div>
               </div>
               <div>
-                <div className="mb-1 flex items-center justify-between text-sm text-slate-300"><span>Route completion</span><span>83%</span></div>
-                <div className="h-2 rounded-full bg-white/10"><div className="h-2 w-[83%] rounded-full bg-gradient-to-r from-emerald-300 to-teal-500" /></div>
+                <div className="mb-1 flex items-center justify-between text-sm text-slate-300"><span>Route completion</span><span>0%</span></div>
+                <div className="h-2 rounded-full bg-white/10"><div className="h-2 w-[0%] rounded-full bg-gradient-to-r from-emerald-300 to-teal-500" /></div>
               </div>
             </div>
           </div>

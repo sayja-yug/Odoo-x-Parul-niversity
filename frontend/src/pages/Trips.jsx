@@ -19,8 +19,9 @@ export default function Trips() {
       .then((data) => {
         if (active) setTrips(data)
       })
-      .catch(() => {
-        if (active) setTrips(recentTrips)
+      .catch((err) => {
+        console.error('Failed to fetch trips:', err)
+        if (active) setError('Failed to load trips. Please try again.')
       })
       .finally(() => {
         if (active) setLoading(false)

@@ -50,20 +50,12 @@ TEMPLATES = [
 WSGI_APPLICATION = "traveloop.wsgi.application"
 ASGI_APPLICATION = "traveloop.asgi.application"
 
-DATABASE_ENGINE = os.getenv("DATABASE_ENGINE", "django.db.backends.mysql")
 DATABASES = {
     "default": {
-        "ENGINE": DATABASE_ENGINE,
-        "NAME": os.getenv("MYSQL_DATABASE", "traveloop") if DATABASE_ENGINE.endswith("mysql") else BASE_DIR / "db.sqlite3",
-        "USER": os.getenv("MYSQL_USER", "root") if DATABASE_ENGINE.endswith("mysql") else "",
-        "PASSWORD": os.getenv("MYSQL_PASSWORD", "") if DATABASE_ENGINE.endswith("mysql") else "",
-        "HOST": os.getenv("MYSQL_HOST", "127.0.0.1") if DATABASE_ENGINE.endswith("mysql") else "",
-        "PORT": os.getenv("MYSQL_PORT", "3306") if DATABASE_ENGINE.endswith("mysql") else "",
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
-
-if DATABASE_ENGINE.endswith("mysql"):
-    DATABASES["default"]["OPTIONS"] = {"charset": "utf8mb4"}
 
 AUTH_USER_MODEL = "trips.User"
 AUTH_PASSWORD_VALIDATORS = [

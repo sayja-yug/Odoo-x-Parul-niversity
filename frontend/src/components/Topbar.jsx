@@ -1,6 +1,18 @@
+import { useState, useEffect } from 'react'
 import { Menu, Search, Bell } from 'lucide-react'
+import { api } from '../api/client.js'
 
 export default function Topbar({ onMenuClick }) {
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    api.profile.get().then(setUser).catch(() => {})
+  }, [])
+
+  const initial = user?.username ? user.username.charAt(0).toUpperCase() : 'G'
+  const displayName = user?.username || 'Guest'
+  const email = user?.email || 'guest@traveloop.local'
+
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[rgba(7,17,31,0.78)] px-4 py-3 backdrop-blur-xl sm:px-6 lg:px-8">
       <div className="flex items-center gap-3">
@@ -23,10 +35,10 @@ export default function Topbar({ onMenuClick }) {
           <Bell className="h-5 w-5" />
         </button>
         <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-aqua-400 to-sand-300 text-sm font-bold text-ink-950">A</div>
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-aqua-400 to-sand-300 text-sm font-bold text-ink-950">{initial}</div>
           <div className="hidden sm:block">
-            <p className="text-sm font-medium text-white">Aanya Patel</p>
-            <p className="text-xs text-slate-400">Product Explorer</p>
+            <p className="text-sm font-medium text-white">{displayName}</p>
+            <p className="text-xs text-slate-400">{email}</p>
           </div>
         </div>
       </div>

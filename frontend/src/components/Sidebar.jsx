@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { CalendarDays, Compass, LayoutDashboard, MapPinned, NotebookText, PlaneTakeoff, Settings2, ShieldCheck, Backpack } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
+import { CalendarDays, Compass, LayoutDashboard, MapPinned, NotebookText, PlaneTakeoff, Settings2, ShieldCheck, Backpack, LogOut } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { api } from '../api/client.js'
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -14,6 +15,18 @@ const navItems = [
 ]
 
 function SidebarContent({ onClose }) {
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    try {
+      await api.logout()
+      navigate('/login')
+      onClose?.()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+  }
+
   return (
     <div className="flex h-full flex-col border-r border-white/10 bg-[rgba(7,17,31,0.92)] px-4 py-5 backdrop-blur-xl sm:px-5">
       <div className="mb-8 flex items-center gap-3">
@@ -25,7 +38,7 @@ function SidebarContent({ onClose }) {
           <p className="text-xs text-slate-400">Plan, map, and share trips</p>
         </div>
       </div>
-      <nav className="space-y-1">
+      <nav className="flex-1 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon
           return (
@@ -43,13 +56,24 @@ function SidebarContent({ onClose }) {
           )
         })}
       </nav>
-      <div className="mt-auto rounded-3xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
-        <div className="mb-2 flex items-center gap-2 text-aqua-200">
-          <CalendarDays className="h-4 w-4" />
-          Upcoming trip
+      
+      <div className="mt-auto space-y-4">
+        <button 
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-red-300 transition hover:bg-red-500/10"
+        >
+          <LogOut className="h-4 w-4" />
+          Logout
+        </button>
+
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
+          <div className="mb-2 flex items-center gap-2 text-aqua-200">
+            <CalendarDays className="h-4 w-4" />
+            Upcoming trip
+          </div>
+          <p className="font-medium text-white">Lisbon route preview</p>
+          <p className="mt-1 text-xs leading-5 text-slate-400">Drag cities, layer stops, and track budget progress in one dashboard.</p>
         </div>
-        <p className="font-medium text-white">Lisbon route preview</p>
-        <p className="mt-1 text-xs leading-5 text-slate-400">Drag cities, layer stops, and track budget progress in one dashboard.</p>
       </div>
     </div>
   )
