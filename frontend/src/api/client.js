@@ -94,6 +94,19 @@ export const api = {
     createForTrip: (tripId, payload) => request(`/trips/${tripId}/budget/`, { method: 'POST', body: JSON.stringify(payload) }),
     update: (budgetId, payload) => request(`/budget/${budgetId}/`, { method: 'PUT', body: JSON.stringify(payload) }),
   },
+  ai: {
+    searchActivities: (q, city = '', category = '') => {
+      const params = new URLSearchParams({ q })
+      if (city)     params.set('city', city)
+      if (category) params.set('category', category)
+      return request(`/ai/activities/?${params}`, { method: 'GET' })
+    },
+  },
+  community: {
+    list: () => request('/community/', { method: 'GET' }),
+    create: (payload) => request('/community/', { method: 'POST', body: JSON.stringify(payload) }),
+  },
+  request,
 }
 
 export default request

@@ -8,6 +8,7 @@ urlpatterns = [
     path("auth/logout/", views.logout_view),
     path("auth/profile/", views.profile_view),
     path("trips/", views.trip_list_create),
+    path("community/", views.community_list_create),
     path("trips/<int:trip_id>/", views.trip_detail),
     path("trips/<int:trip_id>/stops/", views.add_stop),
     path("stops/<int:stop_id>/", views.stop_detail),
@@ -26,4 +27,5 @@ urlpatterns = [
     path("trips/<int:trip_id>/copy/", views.copy_shared_trip),
     path("admin/dashboard/", views.admin_dashboard),
     path("admin/users/", views.admin_users),
+    path("ai/activities/", views.ai_activity_search),
 ]

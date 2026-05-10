@@ -59,6 +59,8 @@ class Stop(TimeStampedModel):
     departure_date = models.DateField()
     duration_days = models.PositiveIntegerField(default=1)
     cost_index = models.CharField(max_length=32, default="medium")
+    lat = models.FloatField(blank=True, null=True)
+    lng = models.FloatField(blank=True, null=True)
     description = models.TextField(blank=True)
     order = models.PositiveIntegerField(default=0)
 
@@ -77,6 +79,7 @@ class Activity(TimeStampedModel):
     cost = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     duration_hours = models.DecimalField(max_digits=6, decimal_places=2, default=1)
     image_url = models.URLField(blank=True)
+    date = models.DateField(blank=True, null=True)
     time_scheduled = models.TimeField(blank=True, null=True)
 
     def __str__(self):
@@ -117,3 +120,14 @@ class TripShare(TimeStampedModel):
     shared_with_user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, related_name="shared_trips")
     is_public = models.BooleanField(default=False)
     share_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+
+
+class CommunityPost(TimeStampedModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
+    content = models.TextField()
+    trip = models.ForeignKey(Trip, on_delete=models.SET_NULL, blank=True, null=True)
+    location_name = models.CharField(max_length=200, blank=True)
+    likes_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-created_at"]

@@ -5,10 +5,11 @@ from rest_framework import permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
-from .models import Activity, Budget, Note, PackingItem, Stop, Trip, TripShare
+from .models import Activity, Budget, Note, PackingItem, Stop, Trip, TripShare, CommunityPost
 from .serializers import (
     ActivitySerializer,
     BudgetSerializer,
+    CommunityPostSerializer,
     NoteSerializer,
     PackingItemSerializer,
     SignupSerializer,
@@ -486,3 +487,92 @@ def admin_users(request):
         for user in users
     ]
     return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def ai_activity_search(request):
+    """
+    AI-powered activity & city search using OpenAI.
+    Query params:
+      - q        : search query (e.g. "Paragliding in Goa")
+      - city     : optional city context
+      - category : optional category filter
+    """
+    from django.conf import settings
+    import urllib.request
+    import json as _json
+
+    query    = request.query_params.get("q", "").strip()
+    city     = request.query_params.get("city", "").strip()
+    category = request.query_params.get("category", "").strip()
+
+    if not query:
+        return Response({"detail": "Query parameter 'q' is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    api_key = settings.OPENAI_API_KEY
+    if not api_key:
+        return Response(
+            {"detail": "OpenAI API key not configured. Add OPENAI_API_KEY to your .env file."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    context = f" in {city}" if city else ""
+    cat_ctx  = f" (category: {category})" if category else ""
+
+    prompt = (
+        f"You are a travel activity expert. Suggest 7 specific activities or attractions for: \"{query}{context}{cat_ctx}\". "
+        f"For each activity return a JSON object with these fields: "
+        f"name (string), description (1-2 sentences), category (string), "
+        f"estimated_cost_usd (number, 0 if free), duration_hours (number), "
+        f"difficulty (easy/moderate/hard), best_time (string), tips (string). "
+        f"Return ONLY a valid JSON array of 7 objects, nothing else."
+    )
+
+    payload = _json.dumps({
+        "model": "gpt-3.5-turbo",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.7,
+        "max_tokens": 1800,
+    }).encode()
+
+    req = urllib.request.Request(
+        "https://api.openai.com/v1/chat/completions",
+        data=payload,
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            result = _json.loads(resp.read())
+        content = result["choices"][0]["message"]["content"].strip()
+        # strip markdown code fences if present
+        if content.startswith("```"):
+            content = content.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+        activities = _json.loads(content)
+        return Response({"query": query, "city": city, "results": activities})
+    except Exception as exc:
+        return Response(
+            {"detail": f"OpenAI request failed: {str(exc)}"},
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+
+
+@api_view(["GET", "POST"])
+@permission_classes([permissions.AllowAny])
+def community_list_create(request):
+    if request.method == "GET":
+        posts = CommunityPost.objects.select_related("user", "trip").all()
+        return Response(CommunityPostSerializer(posts, many=True).data)
+
+    if not request.user.is_authenticated:
+        return Response({"detail": "Authentication required to post."}, status=status.HTTP_401_UNAUTHORIZED)
+
+    serializer = CommunityPostSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    post = serializer.save(user=request.user)
+    return Response(CommunityPostSerializer(post).data, status=status.HTTP_201_CREATED)

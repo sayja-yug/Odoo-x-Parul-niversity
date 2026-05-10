@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import {
   CalendarDays, Compass, LayoutDashboard, MapPinned,
   NotebookText, PlaneTakeoff, Settings2, ShieldCheck,
-  Backpack, LogOut, ChevronRight, Map
+  Backpack, LogOut, ChevronRight, Map, Sparkles, Users
 } from 'lucide-react'
 import { NavLink, useNavigate, useParams, useMatch } from 'react-router-dom'
 import { api } from '../api/client.js'
@@ -11,6 +11,7 @@ import { api } from '../api/client.js'
 /* ── Top-level nav items (no hardcoded trip IDs) ── */
 const mainNav = [
   { to: '/',       label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/community', label: 'Community', icon: Users },
   { to: '/trips',  label: 'Trips',     icon: PlaneTakeoff },
   { to: '/profile',label: 'Profile',   icon: Settings2 },
   { to: '/admin',  label: 'Admin',     icon: ShieldCheck },
@@ -18,10 +19,11 @@ const mainNav = [
 
 /* ── Trip sub-nav (appears when inside a trip page) ── */
 const tripSubNav = [
-  { key: 'itinerary', label: 'Itinerary', icon: MapPinned },
-  { key: 'budget',    label: 'Budget',    icon: Compass },
-  { key: 'packing',   label: 'Packing',   icon: Backpack },
-  { key: 'notes',     label: 'Notes',     icon: NotebookText },
+  { key: 'activities', label: 'AI Activities',  icon: Sparkles },
+  { key: 'itinerary',  label: 'Itinerary',      icon: MapPinned },
+  { key: 'budget',     label: 'Budget',         icon: Compass },
+  { key: 'packing',    label: 'Packing',        icon: Backpack },
+  { key: 'notes',      label: 'Notes',          icon: NotebookText },
 ]
 
 function SidebarContent({ onClose }) {

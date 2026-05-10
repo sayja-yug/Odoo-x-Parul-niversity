@@ -153,7 +153,7 @@ export default function Trips() {
 
       {/* ── Header ── */}
       <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-        className="glass rounded-[2rem] p-6 shadow-soft sm:p-8">
+        className="glass relative z-20 rounded-[2rem] p-6 shadow-soft sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm uppercase tracking-[0.2em] text-aqua-200">My Trips</p>

@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import Activity, Budget, Note, PackingItem, Stop, Trip, TripShare
+from .models import Activity, Budget, Note, PackingItem, Stop, Trip, TripShare, CommunityPost
 
 User = get_user_model()
 
@@ -56,7 +56,28 @@ class SignupSerializer(serializers.ModelSerializer):
         return user
 
 
+class ActivitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Activity
+        fields = [
+            "id",
+            "stop",
+            "title",
+            "description",
+            "category",
+            "cost",
+            "duration_hours",
+            "image_url",
+            "date",
+            "time_scheduled",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+
 class StopSerializer(serializers.ModelSerializer):
+    activities = ActivitySerializer(many=True, read_only=True)
     class Meta:
         model = Stop
         fields = [
@@ -68,8 +89,11 @@ class StopSerializer(serializers.ModelSerializer):
             "departure_date",
             "duration_days",
             "cost_index",
+            "lat",
+            "lng",
             "description",
             "order",
+            "activities",
             "created_at",
             "updated_at",
         ]
@@ -102,25 +126,6 @@ class TripSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "user", "created_at", "updated_at", "stops_count"]
-
-
-class ActivitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Activity
-        fields = [
-            "id",
-            "stop",
-            "title",
-            "description",
-            "category",
-            "cost",
-            "duration_hours",
-            "image_url",
-            "time_scheduled",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = ["id", "created_at", "updated_at"]
 
 
 class BudgetSerializer(serializers.ModelSerializer):
@@ -174,3 +179,11 @@ class TripShareSerializer(serializers.ModelSerializer):
         model = TripShare
         fields = ["id", "trip", "shared_with_user", "is_public", "share_token", "created_at", "updated_at"]
         read_only_fields = ["id", "share_token", "created_at", "updated_at"]
+
+
+class CommunityPostSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = CommunityPost
+        fields = ["id", "user", "content", "trip", "location_name", "likes_count", "created_at"]
+        read_only_fields = ["id", "user", "likes_count", "created_at"]

@@ -2,6 +2,22 @@ from pathlib import Path
 import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# --- Manual .env loader ---
+# This reads the .env file and sets environment variables manually
+env_path = BASE_DIR / ".env"
+if env_path.exists():
+    with open(env_path) as f:
+        for line in f:
+            if line.strip() and not line.startswith("#"):
+                parts = line.strip().split("=", 1)
+                if len(parts) == 2:
+                    key, value = parts
+                    os.environ[key] = value
+
+# OpenAI API key — set this in your .env file
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-traveloop-dev-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
 ALLOWED_HOSTS = [host for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host]
