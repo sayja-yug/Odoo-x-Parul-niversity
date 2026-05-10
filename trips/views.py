@@ -245,22 +245,33 @@ def activity_detail(request, activity_id):
 def trip_budget(request, trip_id):
     trip = get_object_or_404(Trip, pk=trip_id)
     
-    # For GET (read), allow authenticated users to view
     if request.method == "GET":
-        if request.user.is_authenticated:
-            budgets = trip.budgets.all()
-            data = BudgetSerializer(budgets, many=True).data
-            totals = budgets.aggregate(estimated=Sum("estimated_cost"), actual=Sum("actual_cost"))
-            return Response({"items": data, "totals": totals})
-        else:
-            if not _is_owner(request.user, trip):
-                return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
-            budgets = trip.budgets.all()
-            data = BudgetSerializer(budgets, many=True).data
-            totals = budgets.aggregate(estimated=Sum("estimated_cost"), actual=Sum("actual_cost"))
-            return Response({"items": data, "totals": totals})
+        budgets = trip.budgets.all()
+        data = BudgetSerializer(budgets, many=True).data
+        
+        # Calculate sum of all activities in this trip
+        activity_costs = Activity.objects.filter(stop__trip=trip).aggregate(total=Sum("cost"))["total"] or 0
+        
+        # If there are activities, add them as a virtual category for the frontend
+        if activity_costs > 0:
+            data.append({
+                "id": f"act_{trip.id}",
+                "trip": trip.id,
+                "category": "Activities (Itinerary)",
+                "estimated_cost": activity_costs,
+                "actual_cost": activity_costs,
+                "notes": "Calculated from your itinerary activities",
+                "is_virtual": True
+            })
+
+        budget_totals = budgets.aggregate(estimated=Sum("estimated_cost"), actual=Sum("actual_cost"))
+        totals = {
+            "estimated": float(budget_totals["estimated"] or 0) + float(activity_costs),
+            "actual": float(budget_totals["actual"] or 0) + float(activity_costs),
+        }
+        
+        return Response({"items": data, "totals": totals})
     
-    # For POST (write), check ownership
     if not _is_owner(request.user, trip):
         return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
 
@@ -270,17 +281,21 @@ def trip_budget(request, trip_id):
     return Response(BudgetSerializer(budget).data, status=status.HTTP_201_CREATED)
 
 
-@api_view(["PUT"])
+@api_view(["PUT", "DELETE"])
 @permission_classes([permissions.AllowAny])
 def budget_detail(request, budget_id):
     budget = get_object_or_404(Budget, pk=budget_id)
     if not _is_owner(request.user, budget.trip):
         return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
 
-    serializer = BudgetSerializer(budget, data=request.data, partial=True)
-    serializer.is_valid(raise_exception=True)
-    serializer.save()
-    return Response(serializer.data)
+    if request.method == "PUT":
+        serializer = BudgetSerializer(budget, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    budget.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(["GET", "POST"])

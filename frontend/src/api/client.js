@@ -78,6 +78,7 @@ export const api = {
     list: () => request('/trips/', { method: 'GET' }),
     get: (tripId) => request(`/trips/${tripId}/`, { method: 'GET' }),
     create: (payload) => request('/trips/', { method: 'POST', body: JSON.stringify(payload) }),
+    update: (tripId, payload) => request(`/trips/${tripId}/`, { method: 'PUT', body: JSON.stringify(payload) }),
   },
   stops: {
     addToTrip: (tripId, payload) => request(`/trips/${tripId}/stops/`, { method: 'POST', body: JSON.stringify(payload) }),
@@ -93,6 +94,7 @@ export const api = {
     getForTrip: (tripId) => request(`/trips/${tripId}/budget/`, { method: 'GET' }),
     createForTrip: (tripId, payload) => request(`/trips/${tripId}/budget/`, { method: 'POST', body: JSON.stringify(payload) }),
     update: (budgetId, payload) => request(`/budget/${budgetId}/`, { method: 'PUT', body: JSON.stringify(payload) }),
+    delete: (budgetId) => request(`/budget/${budgetId}/`, { method: 'DELETE' }),
   },
   ai: {
     searchActivities: (q, city = '', category = '') => {
