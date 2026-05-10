@@ -104,6 +104,12 @@ export const api = {
       return request(`/ai/activities/?${params}`, { method: 'GET' })
     },
   },
+  packingItems: {
+    getForTrip: (tripId) => request(`/trips/${tripId}/packing/`, { method: 'GET' }),
+    createForTrip: (tripId, payload) => request(`/trips/${tripId}/packing/`, { method: 'POST', body: JSON.stringify(payload) }),
+    update: (itemId, payload) => request(`/packing/${itemId}/`, { method: 'PUT', body: JSON.stringify(payload) }),
+    delete: (itemId) => request(`/packing/${itemId}/`, { method: 'DELETE' }),
+  },
   community: {
     list: () => request('/community/', { method: 'GET' }),
     create: (payload) => request('/community/', { method: 'POST', body: JSON.stringify(payload) }),
