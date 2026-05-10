@@ -1,6 +1,6 @@
 import uuid
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Group
 from django.db import models
 
 
@@ -13,13 +13,28 @@ class TimeStampedModel(models.Model):
 
 
 class User(AbstractUser, TimeStampedModel):
-    email = models.EmailField(unique=True)
     profile_picture = models.ImageField(upload_to="profiles/", blank=True, null=True)
     bio = models.TextField(blank=True)
     language_preference = models.CharField(max_length=32, default="en")
 
+    class Meta:
+        # Ensure email is unique (override AbstractUser default)
+        unique_together = []
+
     def __str__(self):
         return self.username
+
+    @property
+    def role(self):
+        """Return the first group name for the user as a convenience role."""
+        grp = self.groups.first()
+        return grp.name if grp else "Guest"
+
+    def set_role(self, role_name):
+        """Assign the user to a single role (group), removing other groups."""
+        group, _ = Group.objects.get_or_create(name=role_name)
+        self.groups.set([group])
+        self.save(update_fields=["last_login"])  
 
 
 class Trip(TimeStampedModel):

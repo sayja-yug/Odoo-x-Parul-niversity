@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Mail, Lock, PlaneTakeoff } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api/client.js'
 
 export default function Login() {
+  const navigate = useNavigate()
   const [form, setForm] = useState({ username: '', password: '' })
   const [status, setStatus] = useState({ loading: false, error: '' })
 
@@ -13,11 +14,11 @@ export default function Login() {
     setStatus({ loading: true, error: '' })
     try {
       await api.login(form)
+      navigate('/')
     } catch (error) {
       setStatus({ loading: false, error: error.message })
       return
     }
-    setStatus({ loading: false, error: '' })
   }
 
   return (

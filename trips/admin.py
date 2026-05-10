@@ -8,7 +8,8 @@ from .models import Activity, Budget, Note, PackingItem, Stop, Trip, TripShare, 
 class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (("Traveloop", {"fields": ("profile_picture", "bio", "language_preference")}),)
     add_fieldsets = UserAdmin.add_fieldsets + (("Traveloop", {"fields": ("email", "first_name", "last_name")}),)
-    list_display = ("username", "email", "first_name", "last_name", "is_staff")
+    list_display = ("username", "email", "first_name", "last_name", "role", "is_staff")
+    filter_horizontal = ("groups", "user_permissions")
 
 
 @admin.register(Trip)

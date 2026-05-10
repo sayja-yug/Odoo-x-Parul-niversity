@@ -7,9 +7,11 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(read_only=True)
     class Meta:
         model = User
         fields = [
+            "role",
             "id",
             "username",
             "email",
@@ -26,10 +28,22 @@ class UserSerializer(serializers.ModelSerializer):
 
 class SignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User
         fields = ["username", "email", "password", "first_name", "last_name"]
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("This username is already taken.")
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("This email is already registered.")
+        return value
 
     def create(self, validated_data):
         user = User.objects.create_user(

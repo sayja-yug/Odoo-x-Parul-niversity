@@ -56,6 +56,11 @@ def signup_view(request):
     serializer = SignupSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = serializer.save()
+    try:
+        user.set_role("User")
+    except Exception:
+        # if groups/table not available, ignore to avoid signup failure
+        pass
     return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
 
@@ -115,17 +120,26 @@ def trip_list_create(request):
 def trip_detail(request, trip_id):
     trip = get_object_or_404(Trip, pk=trip_id)
     
-    # Check ownership: authenticated users vs guest users
+    # For GET (read), allow authenticated users to view any trip
+    if request.method == "GET":
+        if request.user.is_authenticated:
+            # Authenticated users can view any trip
+            return Response(TripSerializer(trip).data)
+        else:
+            # Unauthenticated users can only view guest-owned trips
+            if trip.user.username != GUEST_USERNAME:
+                return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(TripSerializer(trip).data)
+    
+    # For PUT/DELETE (write), only allow the owner
     if request.user.is_authenticated:
         if trip.user_id != request.user.id:
             return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
     else:
-        # Unauthenticated users can access guest-owned trips
+        # Unauthenticated users can only modify guest-owned trips
         if trip.user.username != GUEST_USERNAME:
             return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
 
-    if request.method == "GET":
-        return Response(TripSerializer(trip).data)
     if request.method == "PUT":
         serializer = TripSerializer(trip, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -159,11 +173,20 @@ def add_stop(request, trip_id):
 @permission_classes([permissions.AllowAny])
 def stop_detail(request, stop_id):
     stop = get_object_or_404(Stop, pk=stop_id)
+    
+    # For GET (read), allow authenticated users to view
+    if request.method == "GET":
+        if request.user.is_authenticated:
+            return Response(StopSerializer(stop).data)
+        else:
+            if not _is_owner(request.user, stop.trip):
+                return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
+            return Response(StopSerializer(stop).data)
+    
+    # For PUT/DELETE (write), check ownership
     if not _is_owner(request.user, stop.trip):
         return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
 
-    if request.method == "GET":
-        return Response(StopSerializer(stop).data)
     if request.method == "PUT":
         serializer = StopSerializer(stop, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -208,14 +231,25 @@ def activity_detail(request, activity_id):
 @permission_classes([permissions.AllowAny])
 def trip_budget(request, trip_id):
     trip = get_object_or_404(Trip, pk=trip_id)
+    
+    # For GET (read), allow authenticated users to view
+    if request.method == "GET":
+        if request.user.is_authenticated:
+            budgets = trip.budgets.all()
+            data = BudgetSerializer(budgets, many=True).data
+            totals = budgets.aggregate(estimated=Sum("estimated_cost"), actual=Sum("actual_cost"))
+            return Response({"items": data, "totals": totals})
+        else:
+            if not _is_owner(request.user, trip):
+                return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
+            budgets = trip.budgets.all()
+            data = BudgetSerializer(budgets, many=True).data
+            totals = budgets.aggregate(estimated=Sum("estimated_cost"), actual=Sum("actual_cost"))
+            return Response({"items": data, "totals": totals})
+    
+    # For POST (write), check ownership
     if not _is_owner(request.user, trip):
         return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
-
-    if request.method == "GET":
-        budgets = trip.budgets.all()
-        data = BudgetSerializer(budgets, many=True).data
-        totals = budgets.aggregate(estimated=Sum("estimated_cost"), actual=Sum("actual_cost"))
-        return Response({"items": data, "totals": totals})
 
     serializer = BudgetSerializer(data={**request.data, "trip": trip.id})
     serializer.is_valid(raise_exception=True)
@@ -240,12 +274,21 @@ def budget_detail(request, budget_id):
 @permission_classes([permissions.AllowAny])
 def trip_packing(request, trip_id):
     trip = get_object_or_404(Trip, pk=trip_id)
+    
+    # For GET (read), allow authenticated users to view
+    if request.method == "GET":
+        if request.user.is_authenticated:
+            items = trip.packing_items.all()
+            return Response(PackingItemSerializer(items, many=True).data)
+        else:
+            if not _is_owner(request.user, trip):
+                return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
+            items = trip.packing_items.all()
+            return Response(PackingItemSerializer(items, many=True).data)
+    
+    # For POST (write), check ownership
     if not _is_owner(request.user, trip):
         return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
-
-    if request.method == "GET":
-        items = trip.packing_items.all()
-        return Response(PackingItemSerializer(items, many=True).data)
 
     serializer = PackingItemSerializer(data={**request.data, "trip": trip.id})
     serializer.is_valid(raise_exception=True)
@@ -274,12 +317,21 @@ def packing_detail(request, item_id):
 @permission_classes([permissions.AllowAny])
 def trip_notes(request, trip_id):
     trip = get_object_or_404(Trip, pk=trip_id)
+    
+    # For GET (read), allow authenticated users to view
+    if request.method == "GET":
+        if request.user.is_authenticated:
+            notes = trip.notes.select_related("stop").order_by("-timestamp")
+            return Response(NoteSerializer(notes, many=True).data)
+        else:
+            if not _is_owner(request.user, trip):
+                return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
+            notes = trip.notes.select_related("stop").order_by("-timestamp")
+            return Response(NoteSerializer(notes, many=True).data)
+    
+    # For POST (write), check ownership
     if not _is_owner(request.user, trip):
         return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
-
-    if request.method == "GET":
-        notes = trip.notes.select_related("stop").order_by("-timestamp")
-        return Response(NoteSerializer(notes, many=True).data)
 
     serializer = NoteSerializer(data={**request.data, "trip": trip.id})
     serializer.is_valid(raise_exception=True)
