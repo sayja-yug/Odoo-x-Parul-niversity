@@ -1,17 +1,23 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Sparkles, Wallet, MapPinned, Users } from 'lucide-react'
-import StatCard from '../components/StatCard.jsx'
+import { Search, Filter, ListFilter, SortAsc, Plus, MapPinned } from 'lucide-react'
 import TripCard from '../components/TripCard.jsx'
-import BudgetChart from '../components/BudgetChart.jsx'
-import TripMap from '../components/TripMap.jsx'
+import RegionCard from '../components/RegionCard.jsx'
 import { api } from '../api/client.js'
-import { budgetSeries } from '../data/mock.js'
+
+const regions = [
+  { name: 'Europe', image: '/images/europe.png' },
+  { name: 'Asia', image: '/images/asia.png' },
+  { name: 'Americas', image: '/images/americas.png' },
+  { name: 'Africa', image: '/images/africa.png' },
+  { name: 'Oceania', image: '/images/asia.png' }, // Reusing asia for oceania for now
+]
 
 export default function Dashboard() {
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     api.trips.list()
@@ -20,108 +26,106 @@ export default function Dashboard() {
       .finally(() => setLoading(false))
   }, [])
 
+  const filteredTrips = trips.filter(t => 
+    t.title.toLowerCase().includes(search.toLowerCase()) || 
+    t.description?.toLowerCase().includes(search.toLowerCase())
+  )
+
   return (
-    <div className="space-y-6 lg:space-y-8">
-      <section className="glass overflow-hidden rounded-[2rem] border border-white/10 p-6 shadow-glow sm:p-8">
-        <div className="grid gap-8 lg:grid-cols-[1.3fr,0.7fr] lg:items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-aqua-400/20 bg-aqua-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-aqua-200">
-              <Sparkles className="h-3.5 w-3.5" />
-              Premium travel planning
-            </div>
-            <h1 className="mt-5 max-w-2xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
-              Build beautiful multi-city itineraries without losing the plot.
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
-              Traveloop keeps your route, budget, packing list, notes, and shareable trip plan in one polished workspace.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link to="/trips/new" className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-aqua-400 to-sand-300 px-5 py-3 text-sm font-semibold text-ink-950 shadow-glow transition hover:scale-[1.01]">
-                Create new trip
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <button className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
-                Explore sample itinerary
-              </button>
-            </div>
-          </div>
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="rounded-[1.8rem] border border-white/10 bg-white/5 p-5 shadow-soft">
-            <p className="text-sm uppercase tracking-[0.2em] text-aqua-200">Today</p>
-            <div className="mt-4 space-y-4">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="text-sm text-slate-400">Next departure</p>
-                <p className="mt-1 text-2xl font-semibold text-white">None scheduled</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-white/5 p-4">
-                  <p className="text-sm text-slate-400">Cities planned</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">{trips.length}</p>
-                </div>
-                <div className="rounded-2xl bg-white/5 p-4">
-                  <p className="text-sm text-slate-400">Status</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">Active</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+    <div className="relative pb-24 space-y-8">
+      {/* Hero Banner */}
+      <section className="relative h-[300px] w-full overflow-hidden rounded-[2.5rem] border border-white/10 shadow-glow">
+        <img
+          src="/images/hero.png"
+          alt="Travel Banner"
+          className="h-full w-full object-cover brightness-75"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 to-transparent" />
+        <div className="absolute inset-0 flex flex-col justify-end p-8 sm:p-12">
+          <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
+            Where to next?
+          </h1>
+          <p className="mt-3 max-w-xl text-lg text-slate-200">
+            Discover, plan, and share your next adventure with Traveloop's premium itinerary tools.
+          </p>
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard title="Trips created" value={trips.length.toString()} detail="Real-time data" accent="from-aqua-400 to-cyan-600" />
-        <StatCard title="Shared plans" value="0" detail="No shared trips" accent="from-sand-300 to-orange-500" />
-        <StatCard title="Status" value="Online" detail="System ready" accent="from-emerald-300 to-teal-500" />
-        <StatCard title="Budget tracking" value="Enabled" detail="Dynamic updates" accent="from-sky-300 to-blue-600" />
+      {/* Search & Filter Bar */}
+      <section className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search bar ......"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full rounded-2xl border-white/10 bg-white/5 py-3.5 pl-12 pr-4 text-white placeholder:text-slate-500 focus:border-aqua-400 focus:ring-aqua-400"
+          />
+        </div>
+        <div className="flex gap-2">
+          <button className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white hover:bg-white/10">
+            <ListFilter className="h-4 w-4" />
+            Group by
+          </button>
+          <button className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white hover:bg-white/10">
+            <Filter className="h-4 w-4" />
+            Filter
+          </button>
+          <button className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white hover:bg-white/10">
+            <SortAsc className="h-4 w-4" />
+            Sort by...
+          </button>
+        </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.2fr,0.8fr]">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm uppercase tracking-[0.2em] text-aqua-200">Recent trips</p>
-              <h2 className="mt-1 text-2xl font-semibold text-white">Ready to continue planning</h2>
-            </div>
-            <Link to="/trips" className="text-sm font-medium text-aqua-200 hover:text-white">View all trips</Link>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {loading ? (
-              <div className="col-span-full py-12 text-center text-slate-400">Loading trips...</div>
-            ) : trips.length > 0 ? (
-              trips.slice(0, 3).map((trip) => (
+      {/* Top Regional Selections */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-4">
+          <h2 className="text-xl font-semibold text-white whitespace-nowrap">Top Regional Selections</h2>
+          <div className="h-px w-full bg-white/10" />
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5 lg:gap-6">
+          {regions.map((region) => (
+            <RegionCard key={region.name} name={region.name} image={region.image} />
+          ))}
+        </div>
+      </section>
+
+      {/* Previous Trips Section */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-4">
+          <h2 className="text-xl font-semibold text-white whitespace-nowrap">Previous Trips</h2>
+          <div className="h-px w-full bg-white/10" />
+        </div>
+        
+        <div className="grid gap-6">
+          {loading ? (
+            <div className="py-20 text-center text-slate-400">Loading your itineraries...</div>
+          ) : filteredTrips.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredTrips.map((trip) => (
                 <TripCard key={trip.id} trip={trip} />
-              ))
-            ) : (
-              <div className="col-span-full rounded-2xl border border-dashed border-white/10 bg-white/5 py-12 text-center">
-                <p className="text-slate-400">No trips found. Create your first itinerary!</p>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="space-y-6">
-          <BudgetChart data={budgetSeries} />
-          <div className="glass rounded-3xl p-5 shadow-soft">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm uppercase tracking-[0.2em] text-aqua-200">Trip health</p>
-                <h3 className="mt-1 text-lg font-semibold text-white">Budget and map alignment</h3>
-              </div>
-              <Wallet className="h-5 w-5 text-sand-300" />
+              ))}
             </div>
-            <div className="mt-5 space-y-3">
-              <div>
-                <div className="mb-1 flex items-center justify-between text-sm text-slate-300"><span>Budget usage</span><span>0%</span></div>
-                <div className="h-2 rounded-full bg-white/10"><div className="h-2 w-[0%] rounded-full bg-gradient-to-r from-aqua-400 to-sand-300" /></div>
-              </div>
-              <div>
-                <div className="mb-1 flex items-center justify-between text-sm text-slate-300"><span>Route completion</span><span>0%</span></div>
-                <div className="h-2 rounded-full bg-white/10"><div className="h-2 w-[0%] rounded-full bg-gradient-to-r from-emerald-300 to-teal-500" /></div>
-              </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center rounded-[2.5rem] border border-dashed border-white/15 bg-white/5 py-20 text-center">
+              <MapPinned className="h-12 w-12 text-slate-500 mb-4" />
+              <p className="text-xl font-medium text-white">No trips found</p>
+              <p className="mt-2 text-slate-400">Time to start planning your first big adventure!</p>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
-      <TripMap />
+      {/* Floating Action Button */}
+      <Link
+        to="/trips/new"
+        className="fixed bottom-8 right-8 z-50 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-aqua-400 to-sand-300 px-6 py-4 font-bold text-ink-950 shadow-glow transition hover:scale-105 active:scale-95 sm:bottom-12 sm:right-12"
+      >
+        <Plus className="h-6 w-6" />
+        Plan a trip
+      </Link>
     </div>
   )
 }

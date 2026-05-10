@@ -38,7 +38,7 @@ function SidebarContent({ onClose }) {
           <p className="text-xs text-slate-400">Plan, map, and share trips</p>
         </div>
       </div>
-      <nav className="flex-1 space-y-1">
+      <nav className="flex-1 space-y-1 overflow-y-auto min-h-0 custom-scrollbar">
         {navItems.map((item) => {
           const Icon = item.icon
           return (
@@ -82,7 +82,7 @@ function SidebarContent({ onClose }) {
 export default function Sidebar({ mobileOpen, onClose }) {
   return (
     <>
-      <div className="hidden w-[290px] lg:block">
+      <div className="hidden w-[290px] lg:block sticky top-0 h-screen overflow-y-auto">
         <SidebarContent onClose={onClose} />
       </div>
       <AnimatePresence>

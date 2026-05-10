@@ -7,11 +7,14 @@ export default function TripCard({ trip }) {
       whileHover={{ y: -6 }}
       className="group overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-soft transition"
     >
-      <div className={`h-40 bg-gradient-to-br ${trip.gradient} relative`}>
-        <div className="absolute inset-0 bg-black/20" />
+      <div className={`h-40 relative ${!trip.image ? `bg-gradient-to-br ${trip.gradient}` : ''}`}>
+        {trip.image && (
+          <img src={trip.image} alt={trip.title} className="absolute inset-0 h-full w-full object-cover" />
+        )}
+        <div className="absolute inset-0 bg-black/40" />
         <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.22em] text-white/75">{trip.status}</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-white/90">{trip.status || 'Planned'}</p>
             <h3 className="mt-1 text-xl font-semibold text-white">{trip.title}</h3>
           </div>
           <div className="rounded-2xl border border-white/20 bg-white/15 p-2 text-white/90 backdrop-blur">
