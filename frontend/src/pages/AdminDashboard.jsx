@@ -1,5 +1,8 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ShieldCheck, Users, TrendingUp, MapPinned, CalendarDays } from 'lucide-react'
+import { ShieldCheck, Users, TrendingUp, MapPinned, CalendarDays, LogOut } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { api } from '../api/client.js'
 
 const stats = [
   { title: 'Total trips', value: '148', icon: CalendarDays },
@@ -9,16 +12,44 @@ const stats = [
 ]
 
 export default function AdminDashboard() {
+  const navigate = useNavigate()
+  const [loggingOut, setLoggingOut] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
+
+  async function handleLogout() {
+    setLoggingOut(true)
+    setLogoutError('')
+    try {
+      await api.logout()
+      navigate('/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+      setLogoutError(error.message || 'Logout failed')
+      setLoggingOut(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <section className="glass rounded-[2rem] p-6 shadow-soft sm:p-8">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-aqua-200"><ShieldCheck className="h-5 w-5" /></div>
-          <div>
-            <p className="text-sm uppercase tracking-[0.2em] text-aqua-200">Admin dashboard</p>
-            <h1 className="mt-1 text-3xl font-semibold text-white">Platform analytics and user management</h1>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-aqua-200"><ShieldCheck className="h-5 w-5" /></div>
+            <div>
+              <p className="text-sm uppercase tracking-[0.2em] text-aqua-200">Admin dashboard</p>
+              <h1 className="mt-1 text-3xl font-semibold text-white">Platform analytics and user management</h1>
+            </div>
           </div>
+          <button onClick={handleLogout} disabled={loggingOut} className="inline-flex items-center gap-2 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50">
+            <LogOut className="h-4 w-4" />
+            {loggingOut ? 'Logging out...' : 'Logout'}
+          </button>
         </div>
+        {logoutError && (
+          <div className="mt-4 rounded-2xl border border-red-400/30 bg-red-500/10 p-4">
+            <p className="text-sm text-red-200">{logoutError}</p>
+          </div>
+        )}
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

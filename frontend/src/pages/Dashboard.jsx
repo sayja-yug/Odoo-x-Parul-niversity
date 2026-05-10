@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { ArrowRight, Sparkles, Wallet, MapPinned, Users } from 'lucide-react'
 import StatCard from '../components/StatCard.jsx'
 import TripCard from '../components/TripCard.jsx'
@@ -23,10 +24,10 @@ export default function Dashboard() {
               Traveloop keeps your route, budget, packing list, notes, and shareable trip plan in one polished workspace.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <button className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-aqua-400 to-sand-300 px-5 py-3 text-sm font-semibold text-ink-950 shadow-glow transition hover:scale-[1.01]">
+              <Link to="/trips/new" className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-aqua-400 to-sand-300 px-5 py-3 text-sm font-semibold text-ink-950 shadow-glow transition hover:scale-[1.01]">
                 Create new trip
                 <ArrowRight className="h-4 w-4" />
-              </button>
+              </Link>
               <button className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">
                 Explore sample itinerary
               </button>

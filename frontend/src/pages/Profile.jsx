@@ -1,7 +1,27 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Mail, Globe2, Camera, Shield, Trash2 } from 'lucide-react'
+import { Mail, Globe2, Camera, Shield, Trash2, LogOut } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { api } from '../api/client.js'
 
 export default function Profile() {
+  const navigate = useNavigate()
+  const [loggingOut, setLoggingOut] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
+
+  async function handleLogout() {
+    setLoggingOut(true)
+    setLogoutError('')
+    try {
+      await api.logout()
+      navigate('/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+      setLogoutError(error.message || 'Logout failed')
+      setLoggingOut(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <section className="glass rounded-[2rem] p-6 shadow-soft sm:p-8">
@@ -54,6 +74,15 @@ export default function Profile() {
             <div className="flex items-center gap-3 text-red-100"><Trash2 className="h-4 w-4" /> Delete account</div>
             <p className="mt-3 text-sm text-red-100/80">Confirmation modal and destructive action guard go here.</p>
           </div>
+          <button onClick={handleLogout} disabled={loggingOut} className="w-full rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50 inline-flex items-center justify-center gap-2">
+            <LogOut className="h-4 w-4" />
+            {loggingOut ? 'Logging out...' : 'Logout'}
+          </button>
+          {logoutError && (
+            <div className="rounded-2xl border border-red-400/30 bg-red-500/10 p-4">
+              <p className="text-sm text-red-200">{logoutError}</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

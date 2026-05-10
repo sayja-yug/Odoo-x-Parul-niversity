@@ -32,6 +32,7 @@ export const api = {
   },
   trips: {
     list: () => request('/trips/', { method: 'GET' }),
+    get: (tripId) => request(`/trips/${tripId}/`, { method: 'GET' }),
     create: (payload) => request('/trips/', { method: 'POST', body: JSON.stringify(payload) }),
   },
 }

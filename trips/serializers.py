@@ -42,32 +42,6 @@ class SignupSerializer(serializers.ModelSerializer):
         return user
 
 
-class TripSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    stops_count = serializers.SerializerMethodField()
-
-    def get_stops_count(self, obj):
-        return obj.stops.count()
-
-    class Meta:
-        model = Trip
-        fields = [
-            "id",
-            "user",
-            "title",
-            "description",
-            "start_date",
-            "end_date",
-            "cover_photo",
-            "total_budget",
-            "is_public",
-            "stops_count",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = ["id", "user", "created_at", "updated_at", "stops_count"]
-
-
 class StopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stop
@@ -86,6 +60,34 @@ class StopSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+
+
+class TripSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    stops_count = serializers.SerializerMethodField()
+    stops = StopSerializer(many=True, read_only=True)
+
+    def get_stops_count(self, obj):
+        return obj.stops.count()
+
+    class Meta:
+        model = Trip
+        fields = [
+            "id",
+            "user",
+            "title",
+            "description",
+            "start_date",
+            "end_date",
+            "cover_photo",
+            "total_budget",
+            "is_public",
+            "stops",
+            "stops_count",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "user", "created_at", "updated_at", "stops_count"]
 
 
 class ActivitySerializer(serializers.ModelSerializer):

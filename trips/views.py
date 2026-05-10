@@ -19,14 +19,35 @@ from .serializers import (
 )
 
 User = get_user_model()
+GUEST_USERNAME = "traveloop_guest"
+
+
+def _get_guest_user():
+    guest_user, _ = User.objects.get_or_create(
+        username=GUEST_USERNAME,
+        defaults={
+            "email": "guest@traveloop.local",
+            "first_name": "Traveloop",
+            "last_name": "Guest",
+        },
+    )
+    if not guest_user.has_usable_password():
+        guest_user.set_unusable_password()
+        guest_user.save(update_fields=["password"])
+    return guest_user
 
 
 def _trip_queryset(user):
-    return Trip.objects.filter(user=user).select_related("user").prefetch_related("stops", "budgets", "packing_items", "notes")
+    if user.is_authenticated:
+        return Trip.objects.filter(user=user).select_related("user").prefetch_related("stops", "budgets", "packing_items", "notes")
+    return Trip.objects.filter(user=_get_guest_user()).select_related("user").prefetch_related("stops", "budgets", "packing_items", "notes")
 
 
 def _is_owner(user, trip):
-    return user.is_authenticated and trip.user_id == user.id
+    if user.is_authenticated:
+        return trip.user_id == user.id
+    # For unauthenticated users, allow access to guest-owned trips
+    return trip.user.username == GUEST_USERNAME
 
 
 @api_view(["POST"])
@@ -51,6 +72,7 @@ def login_view(request):
 
 
 @api_view(["POST"])
+@permission_classes([permissions.AllowAny])
 def logout_view(request):
     logout(request)
     return Response({"detail": "Logged out."})
@@ -74,9 +96,9 @@ def profile_view(request):
 
 
 @api_view(["GET", "POST"])
+@permission_classes([permissions.AllowAny])
 def trip_list_create(request):
-    if not request.user.is_authenticated:
-        return Response({"detail": "Authentication required."}, status=status.HTTP_401_UNAUTHORIZED)
+    owner = request.user if request.user.is_authenticated else _get_guest_user()
 
     if request.method == "GET":
         trips = _trip_queryset(request.user)
@@ -84,15 +106,23 @@ def trip_list_create(request):
 
     serializer = TripSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    trip = serializer.save(user=request.user)
+    trip = serializer.save(user=owner)
     return Response(TripSerializer(trip).data, status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET", "PUT", "DELETE"])
+@permission_classes([permissions.AllowAny])
 def trip_detail(request, trip_id):
     trip = get_object_or_404(Trip, pk=trip_id)
-    if not _is_owner(request.user, trip):
-        return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
+    
+    # Check ownership: authenticated users vs guest users
+    if request.user.is_authenticated:
+        if trip.user_id != request.user.id:
+            return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
+    else:
+        # Unauthenticated users can access guest-owned trips
+        if trip.user.username != GUEST_USERNAME:
+            return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
 
     if request.method == "GET":
         return Response(TripSerializer(trip).data)
@@ -107,10 +137,17 @@ def trip_detail(request, trip_id):
 
 
 @api_view(["POST"])
+@permission_classes([permissions.AllowAny])
 def add_stop(request, trip_id):
     trip = get_object_or_404(Trip, pk=trip_id)
-    if not _is_owner(request.user, trip):
-        return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
+    
+    # Check ownership: authenticated users vs guest users
+    if request.user.is_authenticated:
+        if trip.user_id != request.user.id:
+            return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
+    else:
+        if trip.user.username != GUEST_USERNAME:
+            return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
 
     serializer = StopSerializer(data={**request.data, "trip": trip.id})
     serializer.is_valid(raise_exception=True)
@@ -119,6 +156,7 @@ def add_stop(request, trip_id):
 
 
 @api_view(["GET", "PUT", "DELETE"])
+@permission_classes([permissions.AllowAny])
 def stop_detail(request, stop_id):
     stop = get_object_or_404(Stop, pk=stop_id)
     if not _is_owner(request.user, stop.trip):
@@ -137,6 +175,7 @@ def stop_detail(request, stop_id):
 
 
 @api_view(["POST"])
+@permission_classes([permissions.AllowAny])
 def add_activity(request, stop_id):
     stop = get_object_or_404(Stop, pk=stop_id)
     if not _is_owner(request.user, stop.trip):
@@ -149,6 +188,7 @@ def add_activity(request, stop_id):
 
 
 @api_view(["PUT", "DELETE"])
+@permission_classes([permissions.AllowAny])
 def activity_detail(request, activity_id):
     activity = get_object_or_404(Activity, pk=activity_id)
     if not _is_owner(request.user, activity.stop.trip):
@@ -165,6 +205,7 @@ def activity_detail(request, activity_id):
 
 
 @api_view(["GET", "POST"])
+@permission_classes([permissions.AllowAny])
 def trip_budget(request, trip_id):
     trip = get_object_or_404(Trip, pk=trip_id)
     if not _is_owner(request.user, trip):
@@ -183,6 +224,7 @@ def trip_budget(request, trip_id):
 
 
 @api_view(["PUT"])
+@permission_classes([permissions.AllowAny])
 def budget_detail(request, budget_id):
     budget = get_object_or_404(Budget, pk=budget_id)
     if not _is_owner(request.user, budget.trip):
@@ -195,6 +237,7 @@ def budget_detail(request, budget_id):
 
 
 @api_view(["GET", "POST"])
+@permission_classes([permissions.AllowAny])
 def trip_packing(request, trip_id):
     trip = get_object_or_404(Trip, pk=trip_id)
     if not _is_owner(request.user, trip):
@@ -211,6 +254,7 @@ def trip_packing(request, trip_id):
 
 
 @api_view(["PUT", "DELETE"])
+@permission_classes([permissions.AllowAny])
 def packing_detail(request, item_id):
     item = get_object_or_404(PackingItem, pk=item_id)
     if not _is_owner(request.user, item.trip):
@@ -227,6 +271,7 @@ def packing_detail(request, item_id):
 
 
 @api_view(["GET", "POST"])
+@permission_classes([permissions.AllowAny])
 def trip_notes(request, trip_id):
     trip = get_object_or_404(Trip, pk=trip_id)
     if not _is_owner(request.user, trip):
@@ -243,6 +288,7 @@ def trip_notes(request, trip_id):
 
 
 @api_view(["PUT", "DELETE"])
+@permission_classes([permissions.AllowAny])
 def note_detail(request, note_id):
     note = get_object_or_404(Note, pk=note_id)
     if not _is_owner(request.user, note.trip):
@@ -287,6 +333,7 @@ def search_activities(request):
 
 
 @api_view(["POST"])
+@permission_classes([permissions.AllowAny])
 def share_trip(request, trip_id):
     trip = get_object_or_404(Trip, pk=trip_id)
     if not _is_owner(request.user, trip):

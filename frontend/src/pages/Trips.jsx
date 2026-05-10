@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { Filter, Plus } from 'lucide-react'
 import TripCard from '../components/TripCard.jsx'
 import SkeletonCard from '../components/SkeletonCard.jsx'
@@ -43,10 +44,10 @@ export default function Trips() {
             <Filter className="h-4 w-4" />
             Sort
           </button>
-          <button className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-aqua-400 to-sand-300 px-4 py-3 text-sm font-semibold text-ink-950 shadow-glow">
+          <Link to="/trips/new" className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-aqua-400 to-sand-300 px-4 py-3 text-sm font-semibold text-ink-950 shadow-glow">
             <Plus className="h-4 w-4" />
             Create trip
-          </button>
+          </Link>
         </div>
       </div>
 

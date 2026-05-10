@@ -4,6 +4,7 @@ import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Trips from './pages/Trips.jsx'
+import CreateTrip from './pages/CreateTrip.jsx'
 import TripDetail from './pages/TripDetail.jsx'
 import Itinerary from './pages/Itinerary.jsx'
 import Budget from './pages/Budget.jsx'
@@ -21,6 +22,7 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/trips" element={<Trips />} />
+        <Route path="/trips/new" element={<CreateTrip />} />
         <Route path="/trips/:tripId" element={<TripDetail />} />
         <Route path="/trips/:tripId/itinerary" element={<Itinerary />} />
         <Route path="/trips/:tripId/budget" element={<Budget />} />
