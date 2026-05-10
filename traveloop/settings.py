@@ -1,0 +1,99 @@
+from pathlib import Path
+import os
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-traveloop-dev-key")
+DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
+ALLOWED_HOSTS = [host for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host]
+
+INSTALLED_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "rest_framework",
+    "corsheaders",
+    "trips",
+]
+
+MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+ROOT_URLCONF = "traveloop.urls"
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = "traveloop.wsgi.application"
+ASGI_APPLICATION = "traveloop.asgi.application"
+
+DATABASE_ENGINE = os.getenv("DATABASE_ENGINE", "django.db.backends.mysql")
+DATABASES = {
+    "default": {
+        "ENGINE": DATABASE_ENGINE,
+        "NAME": os.getenv("MYSQL_DATABASE", "traveloop") if DATABASE_ENGINE.endswith("mysql") else BASE_DIR / "db.sqlite3",
+        "USER": os.getenv("MYSQL_USER", "root") if DATABASE_ENGINE.endswith("mysql") else "",
+        "PASSWORD": os.getenv("MYSQL_PASSWORD", "") if DATABASE_ENGINE.endswith("mysql") else "",
+        "HOST": os.getenv("MYSQL_HOST", "127.0.0.1") if DATABASE_ENGINE.endswith("mysql") else "",
+        "PORT": os.getenv("MYSQL_PORT", "3306") if DATABASE_ENGINE.endswith("mysql") else "",
+    }
+}
+
+if DATABASE_ENGINE.endswith("mysql"):
+    DATABASES["default"]["OPTIONS"] = {"charset": "utf8mb4"}
+
+AUTH_USER_MODEL = "trips.User"
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
+
+LANGUAGE_CODE = "en-us"
+TIME_ZONE = "UTC"
+USE_I18N = True
+USE_TZ = True
+STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticatedOrReadOnly",
+    ],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+}
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
