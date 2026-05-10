@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { CalendarDays, MapPin, Pencil, Share2, Wallet, Package, CheckCircle2, TrendingUp, Clock } from 'lucide-react'
+import { CalendarDays, MapPin, Pencil, Share2, Wallet, Package, CheckCircle2, TrendingUp, Clock, Receipt } from 'lucide-react'
 import { api } from '../api/client.js'
 
 function formatDateRange(startDate, endDate) {
@@ -104,13 +104,20 @@ export default function TripDetail() {
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <Link 
               to={`/trips/${tripId}/itinerary`} 
               className="flex items-center gap-2 rounded-2xl bg-aqua-500 px-6 py-4 font-bold text-slate-900 transition-all hover:bg-aqua-400 hover:scale-[1.02] active:scale-95 shadow-lg shadow-aqua-500/20"
             >
               <Pencil className="h-5 w-5" />
               Open builder
+            </Link>
+            <Link 
+              to={`/trips/${tripId}/invoice`} 
+              className="flex items-center gap-2 rounded-2xl bg-white/5 px-6 py-4 font-bold text-white ring-1 ring-white/10 transition-all hover:bg-white/10 active:scale-95"
+            >
+              <Receipt className="h-5 w-5 text-aqua-400" />
+              Invoice
             </Link>
             <button className="flex items-center gap-2 rounded-2xl bg-white/5 px-6 py-4 font-bold text-white ring-1 ring-white/10 transition-all hover:bg-white/10 active:scale-95">
               <Share2 className="h-5 w-5" />

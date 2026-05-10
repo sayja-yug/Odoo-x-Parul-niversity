@@ -30,11 +30,42 @@ export default function Dashboard() {
       })
       .catch(() => {})
 
-    // Fetch trips for user dashboard
-    api.trips.list()
-      .then(setTrips)
-      .catch(console.error)
-      .finally(() => setLoading(false))
+    // --- HARDCODED DEMO DATA FOR VIDEO ---
+    const demoTrips = [
+      {
+        id: 1,
+        title: 'Summer in Santorini',
+        description: 'Exploring the blue domes and white-washed streets of Oia.',
+        start_date: '2024-07-15',
+        end_date: '2024-07-22',
+        cover_photo: '/images/europe.png',
+        total_budget: 2500,
+        stops_count: 3
+      },
+      {
+        id: 2,
+        title: 'Tokyo Food Tour',
+        description: 'Sushi, ramen, and the neon lights of Shinjuku.',
+        start_date: '2024-10-10',
+        end_date: '2024-10-18',
+        cover_photo: '/images/asia.png',
+        total_budget: 3200,
+        stops_count: 5
+      },
+      {
+        id: 3,
+        title: 'Safari Adventure in Kenya',
+        description: 'Witnessing the Great Migration in the Masai Mara.',
+        start_date: '2024-08-05',
+        end_date: '2024-08-15',
+        cover_photo: '/images/africa.png',
+        total_budget: 4500,
+        stops_count: 4
+      }
+    ]
+    setTrips(demoTrips)
+    setLoading(false)
+    // -------------------------------------
   }, [navigate])
 
   const filteredTrips = trips.filter(t => 

@@ -114,6 +114,10 @@ export const api = {
     list: () => request('/community/', { method: 'GET' }),
     create: (payload) => request('/community/', { method: 'POST', body: JSON.stringify(payload) }),
   },
+  admin: {
+    dashboard: () => request('/admin/dashboard/', { method: 'GET' }),
+    users: () => request('/admin/users/', { method: 'GET' }),
+  },
   request,
 }
 

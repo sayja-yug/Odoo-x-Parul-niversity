@@ -15,6 +15,7 @@ import SharedItinerary from './pages/SharedItinerary.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import ActivitySearch from './pages/ActivitySearch.jsx'
 import Community from './pages/Community.jsx'
+import Invoice from './pages/Invoice.jsx'
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/trips/:tripId/packing" element={<Packing />} />
         <Route path="/trips/:tripId/notes" element={<Notes />} />
         <Route path="/trips/:tripId/activities" element={<ActivitySearch />} />
+        <Route path="/trips/:tripId/invoice" element={<Invoice />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/shared/:shareToken" element={<SharedItinerary />} />

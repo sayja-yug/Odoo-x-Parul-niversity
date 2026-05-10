@@ -487,11 +487,40 @@ def admin_dashboard(request):
     if not request.user.is_authenticated or not request.user.is_staff:
         return Response({"detail": "Admin only."}, status=status.HTTP_403_FORBIDDEN)
 
+    from django.db.models.functions import TruncMonth
+    
+    # Trip trends (last 6 months)
+    trip_trends = list(
+        Trip.objects.annotate(month=TruncMonth("created_at"))
+        .values("month")
+        .annotate(count=Count("id"))
+        .order_by("month")[:6]
+    )
+    
+    # User growth (last 6 months)
+    user_growth = list(
+        User.objects.annotate(month=TruncMonth("created_at"))
+        .values("month")
+        .annotate(count=Count("id"))
+        .order_by("month")[:6]
+    )
+
+    # Regional distribution (by country)
+    region_dist = list(
+        Stop.objects.values("country")
+        .annotate(count=Count("id"))
+        .order_by("-count")[:5]
+    )
+
     stats = {
         "total_users": User.objects.count(),
         "total_trips": Trip.objects.count(),
+        "total_stops": Stop.objects.count(),
+        "total_activities": Activity.objects.count(),
+        "trip_trends": trip_trends,
+        "user_growth": user_growth,
+        "region_distribution": region_dist,
         "top_cities": list(Stop.objects.values("city_name").annotate(total=Count("id")).order_by("-total")[:10]),
-        "top_activities": list(Activity.objects.values("category").annotate(total=Count("id")).order_by("-total")[:10]),
     }
     return Response(stats)
 
