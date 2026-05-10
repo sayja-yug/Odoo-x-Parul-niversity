@@ -27,6 +27,8 @@ class User(AbstractUser, TimeStampedModel):
     @property
     def role(self):
         """Return the first group name for the user as a convenience role."""
+        if self.is_superuser or self.is_staff:
+            return "Admin"
         grp = self.groups.first()
         return grp.name if grp else "Guest"
 

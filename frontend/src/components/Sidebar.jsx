@@ -28,6 +28,16 @@ const tripSubNav = [
 
 function SidebarContent({ onClose }) {
   const navigate = useNavigate()
+  const [user, setUser] = useState(null)
+
+  useEffect(() => {
+    api.profile.get().then(setUser).catch(() => {})
+  }, [])
+
+  const filteredNav = mainNav.filter(item => {
+    if (item.to === '/admin') return user?.role === 'Admin'
+    return true
+  })
 
   // Detect if we're inside a trip route (e.g. /trips/3/itinerary)
   const tripMatch  = useMatch('/trips/:tripId/*')
@@ -69,7 +79,7 @@ function SidebarContent({ onClose }) {
 
       {/* Main nav */}
       <nav className="flex-1 space-y-1 overflow-y-auto min-h-0 custom-scrollbar">
-        {mainNav.map((item) => {
+        {filteredNav.map((item) => {
           const Icon = item.icon
           return (
             <NavLink

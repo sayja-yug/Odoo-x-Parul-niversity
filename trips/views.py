@@ -70,9 +70,21 @@ def signup_view(request):
 def login_view(request):
     username = request.data.get("username")
     password = request.data.get("password")
-    user = authenticate(request, username=username, password=password)
+    
+    if not username or not password:
+        return Response({"detail": "Username and password required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+    user = authenticate(username=username, password=password)
+    
     if user is None:
-        return Response({"detail": "Invalid credentials."}, status=status.HTTP_400_BAD_REQUEST)
+        # Debug: check if user exists at all
+        exists = User.objects.filter(username=username).exists()
+        return Response({
+            "detail": "Invalid credentials.",
+            "debug_user_exists": exists,
+            "received_username": username
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
     login(request, user)
     return Response(UserSerializer(user).data)
 

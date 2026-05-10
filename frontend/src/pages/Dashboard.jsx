@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Search, Filter, ListFilter, SortAsc, Plus, MapPinned } from 'lucide-react'
 import TripCard from '../components/TripCard.jsx'
 import RegionCard from '../components/RegionCard.jsx'
@@ -15,16 +15,27 @@ const regions = [
 ]
 
 export default function Dashboard() {
+  const navigate = useNavigate()
   const [trips, setTrips] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
 
   useEffect(() => {
+    // Check if user is admin and redirect
+    api.profile.get()
+      .then(user => {
+        if (user.role === 'Admin') {
+          navigate('/admin')
+        }
+      })
+      .catch(() => {})
+
+    // Fetch trips for user dashboard
     api.trips.list()
       .then(setTrips)
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [])
+  }, [navigate])
 
   const filteredTrips = trips.filter(t => 
     t.title.toLowerCase().includes(search.toLowerCase()) || 
@@ -129,3 +140,4 @@ export default function Dashboard() {
     </div>
   )
 }
+
