@@ -13,8 +13,12 @@ export default function Login() {
     event.preventDefault()
     setStatus({ loading: true, error: '' })
     try {
-      await api.login(form)
-      navigate('/')
+      const user = await api.login(form)
+      if (user?.role === 'Admin') {
+        navigate('/admin')
+      } else {
+        navigate('/')
+      }
     } catch (error) {
       setStatus({ loading: false, error: error.message })
       return

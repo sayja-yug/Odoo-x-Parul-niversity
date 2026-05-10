@@ -1,11 +1,52 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CalendarDays, MapPin, Pencil, Share2, Wallet } from 'lucide-react'
-import { recentTrips } from '../data/mock.js'
+import { api } from '../api/client.js'
+
+function formatDateRange(startDate, endDate) {
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 'Date not set'
+  return `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`
+}
 
 export default function TripDetail() {
   const { tripId } = useParams()
-  const trip = recentTrips[(Number(tripId) - 1) % recentTrips.length] || recentTrips[0]
+  const [trip, setTrip] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+    api.trips
+      .get(tripId)
+      .then((data) => {
+        if (active) setTrip(data)
+      })
+      .catch((err) => {
+        if (active) setError(err.message || 'Failed to load trip')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [tripId])
+
+  if (loading) {
+    return <div className="rounded-3xl border border-white/10 bg-white/5 p-6 text-slate-300">Loading trip...</div>
+  }
+
+  if (error) {
+    return <div className="rounded-3xl border border-red-400/30 bg-red-500/10 p-6 text-red-100">{error}</div>
+  }
+
+  if (!trip) {
+    return <div className="rounded-3xl border border-yellow-400/30 bg-yellow-500/10 p-6 text-yellow-100">Trip not found.</div>
+  }
 
   return (
     <div className="space-y-6">
@@ -15,9 +56,9 @@ export default function TripDetail() {
             <p className="text-sm uppercase tracking-[0.2em] text-aqua-200">Trip detail</p>
             <h1 className="mt-2 text-4xl font-semibold text-white">{trip.title}</h1>
             <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-300">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2"><CalendarDays className="h-4 w-4 text-aqua-300" />{trip.dateRange}</span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2"><MapPin className="h-4 w-4 text-sand-300" />{trip.cities} cities</span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2"><Wallet className="h-4 w-4 text-emerald-300" />{trip.budget}</span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2"><CalendarDays className="h-4 w-4 text-aqua-300" />{formatDateRange(trip.start_date, trip.end_date)}</span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2"><MapPin className="h-4 w-4 text-sand-300" />{trip.stops_count ?? (trip.stops ? trip.stops.length : 0)} cities</span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2"><Wallet className="h-4 w-4 text-emerald-300" />${trip.total_budget ?? 0}</span>
             </div>
           </div>
           <div className="flex flex-wrap gap-3">

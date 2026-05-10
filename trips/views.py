@@ -163,7 +163,7 @@ def add_stop(request, trip_id):
         if trip.user.username != GUEST_USERNAME:
             return Response({"detail": "Not allowed."}, status=status.HTTP_403_FORBIDDEN)
 
-    serializer = StopSerializer(data={**request.data, "trip": trip.id})
+    serializer = StopSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     stop = serializer.save(trip=trip)
     return Response(StopSerializer(stop).data, status=status.HTTP_201_CREATED)

@@ -73,7 +73,7 @@ class StopSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = ["id", "trip", "created_at", "updated_at"]
 
 
 class TripSerializer(serializers.ModelSerializer):
