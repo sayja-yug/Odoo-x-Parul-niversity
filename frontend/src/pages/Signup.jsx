@@ -6,7 +6,7 @@ import { api } from '../api/client.js'
 
 export default function Signup() {
   const navigate = useNavigate()
-  const [form, setForm] = useState({ username: '', email: '', password: '' })
+  const [form, setForm] = useState({ username: '', email: '', password: '', first_name: '', last_name: '' })
   const [status, setStatus] = useState({ loading: false, error: '' })
 
   async function handleSubmit(event) {
@@ -45,9 +45,19 @@ export default function Signup() {
           <h2 className="text-3xl font-semibold text-white">Create account</h2>
           <p className="mt-2 text-sm text-slate-400">Start planning your next itinerary.</p>
           <div className="mt-8 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-200">First Name</span>
+                <input className="w-full rounded-2xl border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-aqua-400 focus:ring-aqua-400" value={form.first_name} onChange={(event) => setForm({ ...form, first_name: event.target.value })} placeholder="Aanya" />
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-200">Last Name</span>
+                <input className="w-full rounded-2xl border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-aqua-400 focus:ring-aqua-400" value={form.last_name} onChange={(event) => setForm({ ...form, last_name: event.target.value })} placeholder="Sharma" />
+              </label>
+            </div>
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-200">Username</span>
-              <input className="w-full rounded-2xl border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-aqua-400 focus:ring-aqua-400" value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value })} placeholder="Aanya" />
+              <input className="w-full rounded-2xl border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-slate-500 focus:border-aqua-400 focus:ring-aqua-400" value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value })} placeholder="aanya123" />
             </label>
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-slate-200">Email</span>
@@ -60,7 +70,7 @@ export default function Signup() {
               <span className="mb-2 block text-sm font-medium text-slate-200">Password</span>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input type="password" className="w-full rounded-2xl border-white/10 bg-white/5 py-3 pl-11 pr-4 text-white placeholder:text-slate-500 focus:border-aqua-400 focus:ring-aqua-400" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder="At least 8 characters" />
+                <input type="password" className="w-full rounded-2xl border-white/10 bg-white/5 py-3 pl-11 pr-4 text-white placeholder:text-slate-500 focus:border-aqua-400 focus:ring-aqua-400" value={form.password} placeholder="At least 8 characters" onChange={(event) => setForm({ ...form, password: event.target.value })} />
               </div>
             </label>
           </div>
